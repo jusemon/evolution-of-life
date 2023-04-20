@@ -1,0 +1,24 @@
+{
+  "name": "evolution-of-life",
+  "version": "0.1.0",
+  "description": "A micro life simulation game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jusemon/evolution-of-life.git"
+  },
+  "keywords": [
+    "videogame",
+    "practice",
+    "js12kbGame"
+  ],
+  "author": "Juan Sebastian Montoya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jusemon/evolution-of-life/issues"
+  },
+  "homepage": "https://github.com/jusemon/evolution-of-life#readme"
+}
