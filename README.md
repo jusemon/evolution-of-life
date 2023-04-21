@@ -7,6 +7,7 @@ A 2D side-scrolling game that follows the journey of a single-celled organism as
 - [Kontra](https://straker.github.io/kontra/)
 - [TinyMusic](https://github.com/kevincennis/TinyMusic)
 - [Pixel Font](https://github.com/PaulBGD/PixelFont)
+- [js13k-rollup](https://github.com/spmurrayzzz/js13k-rollup)
 
 ## Gameplay
 
@@ -61,6 +62,7 @@ The game is designed to be educational and entertaining for all ages, with a foc
 - Libraries used: Kontra, TinyMusic, Pixel Font
 - Graphics by Juan Sebastián Montoya
 - Soundtrack by Juan Sebastián Montoya
+- Template by Stephen Murray
 
 ## License
 
