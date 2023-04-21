@@ -1,3 +1,21 @@
+html,
+body {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#game {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
 canvas {
     border: 1px solid black;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
