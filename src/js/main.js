@@ -100,8 +100,8 @@ const generatePixelArtImage = ({
         [ , ,1,1,1,1,1, , , ,1,1,1,1,1, , , , , , , , , , , ,1,1,1,1, , , , , , , ,1,1,1,1,1,1, , , , , , , , , ,1,1,1, , , , , , , , , , , ,1,1,1,1,1,1,1,1,1,1,1,1,1, ]
     ];
     const anims = {
-        walkright: 'walkright',
-        walkleft: 'walkleft',
+        walkr: 'walkr',
+        walkl: 'walkl',
         idler: 'idler',
         idlel: 'idlel',
         bendr: 'bendr',
@@ -112,13 +112,13 @@ const generatePixelArtImage = ({
         frameWidth: 16,
         frameHeight: 16,
         animations: {
-            [anims.walkright]: {
-                frames: [1,2],
-                frameRate: 5
+            [anims.walkr]: {
+                frames: [1,2,3,2],
+                frameRate: 6
             },
-            [anims.walkleft]: {
-                frames: [8,7],
-                frameRate: 5
+            [anims.walkl]: {
+                frames: [8,7,6,7],
+                frameRate: 6
             },
             [anims.idler]: {
                 frames: [0],
@@ -155,11 +155,11 @@ const generatePixelArtImage = ({
             if (keyPressed('arrowdown')) {
                 sprite.playAnimation(left? anims.bendl : anims.bendr);
             } else if (keyPressed('arrowright')) {
-                sprite.playAnimation(anims.walkright)
+                sprite.playAnimation(anims.walkr)
                 sprite.x += 1;
                 left = false;
             } else if (keyPressed('arrowleft')) {
-                sprite.playAnimation(anims.walkleft)
+                sprite.playAnimation(anims.walkl)
                 sprite.x -= 1;
                 left = true;
             } else {
