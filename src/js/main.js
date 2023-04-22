@@ -1,42 +1,61 @@
 import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed } from "kontra";
 import CanvasWindow from "./classes/canvas-windows";
+import tinymusic from "tinymusic";
 
 /**
- * Draws a pixel art sprite from a 2D array of pixel data.
- * @param {Array<Array<number>>} spriteData - The 2D array of pixel data.
- * @returns {Promise<HTMLImageElement>} - A promise that resolves with an HTML image element representing the drawn sprite.
+ * Draws an image from pixel data using a specified color palette and flip option.
+ *
+ * @param {Object} options - Options for drawing the image.
+ * @param {number[][]} options.data - The pixel data as a 2D array of numbers.
+ * @param {string[]} [options.colors] - An array of color values as strings.
+ * @param {boolean} [options.shouldFlip=false] - Whether to flip the image vertically.
+ * @returns {Promise<HTMLImageElement>} A promise that resolves with the generated image as an HTML image element.
  */
-const drawPixels = (spriteData) => {
+const generatePixelArtImage = ({
+    data,
+    colors = [],
+    shouldFlip = false,
+}) => {
     return new Promise((resolve, reject) => {
         try {
-            const ctx = document.createElement('canvas').getContext("2d");
-            ctx.fillStyle = "black";
+            const ctx = document.createElement('canvas').getContext('2d');
             ctx.beginPath();
-            for (let yIndex = 0; yIndex < spriteData.length; yIndex++) {
-                const row = spriteData[yIndex];
-                for (let xIndex = 0; xIndex < row.length; xIndex++) {
+            const width = data.reduce((w, r) => r.length > w ? r.length : w, 0);
+
+            for (let yIndex = 0; yIndex < data.length; yIndex++) {
+                const row = data[yIndex];
+                let xPos = (width * 2) - 1;
+                for (let xIndex = 0; xIndex < width; xIndex++) {
                     const pixel = row[xIndex];
                     if (pixel) {
+                        ctx.fillStyle = colors[pixel - 1];
                         ctx.fillRect(xIndex, yIndex, 1, 1);
+                        if (shouldFlip) {
+                            ctx.fillRect(xPos, yIndex, 1, 1);
+                        }
                     }
+                    xPos--;
                 }
             }
+
             const img = document.createElement('img');
-            img.onload = function () {
-                resolve(img)
-            }
-            img.onerror = function (err) {
-                reject(err)
-            }
+            img.onload = () => {
+                resolve(img);
+            };
+            img.onerror = (err) => {
+                reject(err);
+            };
             img.src = ctx.canvas.toDataURL('image/png');
         } catch (err) {
-            reject(err)
+            reject(err);
         }
     });
-}
+};
 
 (async () => {
     const { canvas } = init();
+
+    console.log("Tiny music loaded", {tinymusic});
     const canvasWindow = new CanvasWindow({
         nativeWidth: 160,
         nativeHeight: 120,
@@ -54,64 +73,97 @@ const drawPixels = (spriteData) => {
         canvas.height = canvasWindow.canvasHeight;
         canvasWindow.resize();
     })
+
+    const palette =  [ 
+        '#20283d', // accent
+        '#e5b083', // complementary1
+        '#fbf7f3', // primaryß
+        '#426e5d', // complementary2
+    ];
     
-    // Create and scale canvas based on screen size
     const spriteData = [
-        [, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ,],
-        [, , , , , , , , ,1,1,1,1,1,1, , , , , , , , , , , , , , , , ,],
-        [,1,1,1,1,1,1, , ,1,1,1,1,1,1, , , ,1,1,1,1,1, , ,1,1,1,1, , ,],
-        [,1,1,1,1,1,1, , ,1,1, , ,1,1, , , ,1,1,1,1,1, , ,1,1,1,1, , ,],
-        [,1,1, , ,1,1, , ,1,1, , ,1,1, , , ,1,1, , ,1, , ,1, , ,1, , ,],
-        [,1,1, , ,1,1, , ,1,1, , ,1,1, , ,1,1,1, , ,1, , ,1, , ,1,1, ,],
-        [,1,1,1,1,1,1, , ,1,1,1,1,1,1, , ,1,1,1,1,1,1, , ,1,1,1,1,1, ,],
-        [,1,1,1,1,1,1, , ,1,1,1,1,1,1, , ,1,1,1,1,1,1, , ,1,1,1,1,1, ,],
+        [ , , , , , ,1,1,1,1,1, , , , , , , , , , ,1,1,1,1,1, , , , , , , , , , , , , , , , , , , , , , , , , , , ,1,1,1,1,1, , , , , , , , , , , , , , , , , , , , , , ],
+        [ , , , ,1,1,2,3,3,3,2,1,1, , , , , , ,1,1,2,3,3,3,2,1,1, , , , , , , , , ,1,1,1,1,1,1, , , , , , , , ,1,1,2,3,3,3,2,1,1, , , , , , , , , , , , , , , , , , , , ],
+        [ , , ,1,2,3,3,3,3,3,3,3,2,1, , , , ,1,2,3,3,3,3,3,3,3,2,1, , , , , , ,1,1,2,3,3,3,3,2,1, , , , , , ,1,2,3,3,3,3,3,3,3,2,1, , , , , , , , , , , , , , , , , , , ],
+        [ , ,1,2,3,3,3,3,3,3,3,3,3,1, , , , ,1,3,3,3,3,3,3,3,3,3,1, , , , , ,1,2,3,3,3,3,3,3,3,3,1, , , , ,1,1,1,3,3,3,3,3,3,3,3,1,1,1, , , , , , , , , , , , , , , , , ],
+        [ , ,1,3,3,3,3,3,3,3,3,3,3,2,1, , ,1,2,3,3,3,3,3,3,3,3,1,3,1, , , ,1,2,3,3,3,3,3,3,3,3,3,1, , , ,1,2,3,3,2,3,3,3,1,3,1,3,2,1,3,1, , , , , , , , , , , , , , , , ],
+        [ ,1,3,3,3,3,3,3,3,1,3,1,3,2,1, , ,1,3,3,3,3,3,3,3,3,3,1,3,1, , , ,1,3,3,3,3,3,3,3,1,3,1,3,1, , ,1,3,3,3,3,3,3,3,1,3,1,3,3,1,3,1, , , , , , , , , , , , , , , , ],
+        [1,2,3,3,3,3,3,3,3,1,3,1,3,3,3,1, ,1,3,3,3,2,1,3,3,3,3,1,3,1, , ,1,3,3,3,3,3,3,3,3,1,3,1,3,1,1, ,1,3,3,3,3,3,3,3,1,3,1,3,3,1,3,1, , , , , , , , , , , , , , , , ],
+        [1,3,3,3,3,3,3,3,3,1,3,1,3,3,3,1, ,1,3,3,3,3,3,1,3,3,3,3,3,1, , ,1,3,3,3,3,3,3,3,3,1,3,1,3,1,2,1,1,2,3,3,3,3,3,3,3,3,3,3,3,1,2,1, , , , , ,1,1,1,1,1,1,1, , , , ],
+        [1,3,3,3,2,3,3,3,3,3,3,3,3,2,3,1, ,1,2,3,3,3,3,1,3,3,3,3,3,1, , ,1,3,3,3,2,3,3,3,3,3,3,3,3,1,3,1, ,1,1,2,3,3,3,3,3,3,3,3,3,1,1, , , , ,1,1,2,3,3,3,3,3,3,1,1, , ],
+        [1,2,3,3,2,3,3,3,3,3,3,3,3,2,3,1, ,1,1,2,3,3,1,3,3,3,3,1,3,1, , ,1,2,3,3,1,3,3,3,3,3,3,3,3,1,3,1, , ,1,3,3,3,3,3,3,1,3,3,2,1, , , ,1,1,3,3,3,3,3,3,3,3,3,3,2,1, ],
+        [ ,1,2,3,1,2,3,3,3,3,1,3,3,1,2,1,1,1,1,1,1,1,3,3,3,3,3,3,2,1, , , ,1,2,3,1,3,3,3,3,3,1,3,3,1,2,1, ,1,1,2,3,3,3,3,3,3,3,3,1,2,1, ,1,2,3,3,3,3,3,3,3,3,3,3,3,3,1,1],
+        [ , ,1,1,1,2,3,3,3,3,3,3,2,1,1, ,1,2,2,1,2,3,3,3,3,3,3,2,1, , , , , ,1,1,1,2,3,3,3,3,3,3,2,1,1, , ,1,2,1,2,3,3,3,3,3,3,2,1,2,1, ,1,2,3,3,3,3,3,3,3,1,3,1,3,3,1,1],
+        [ , , ,1,1,1,2,2,3,3,3,2,1,1, , ,1,2,2,2,1,2,3,3,3,3,2,1,1,1, , , , , ,1,1,1,2,3,3,3,3,2,1, , , , ,1,2,2,1,1,2,3,3,2,1,1,2,2,1, , ,1,2,3,2,3,3,3,3,1,3,1,3,2,1,1],
+        [ , ,1,2,2,2,1,1,1,1,1,1,2,2,1, ,1,2,2,2,1,1,1,1,1,1,1,2,2,2,1, , , , ,1,2,2,1,1,1,1,1,1, , , , , , ,1,2,2,2,1,1,1,1,2,2,2,1, , , , ,1,1,1,3,3,3,3,3,3,3,3,1,1, ],
+        [ ,1,2,2,2,2,2,1,1,1,1,2,2,2,2,1, ,1,1,1, , , , , ,1,2,2,2,2,1, , , , , ,1,2,2,2,2,1,2,1, , , , , , , ,1,2,2,2,1, , ,1,1,1, , , , ,1,2,2,1,1,2,3,3,3,1,3,1,2,2,1],
+        [ , ,1,1,1,1,1, , , ,1,1,1,1,1, , , , , , , , , , , ,1,1,1,1, , , , , , , ,1,1,1,1,1,1, , , , , , , , , ,1,1,1, , , , , , , , , , , ,1,1,1,1,1,1,1,1,1,1,1,1,1, ]
     ];
     const anims = {
         walkright: 'walkright',
         walkleft: 'walkleft',
-        idle: 'idle',
+        idler: 'idler',
+        idlel: 'idlel',
+        bendr: 'bendr',
+        bendl: 'bendl',
     }
     const spriteSheet = SpriteSheet({
-        image: await drawPixels(spriteData),
-        frameWidth: 8,
-        frameHeight: 8,
+        image: await generatePixelArtImage({data: spriteData, shouldFlip: true, colors: palette }),
+        frameWidth: 16,
+        frameHeight: 16,
         animations: {
             [anims.walkright]: {
-                frames: [0, 2],
+                frames: [1,2],
                 frameRate: 5
             },
             [anims.walkleft]: {
-                frames: [0, 3],
+                frames: [8,7],
                 frameRate: 5
             },
-            [anims.idle]: {
-                frames: [0, 1],
+            [anims.idler]: {
+                frames: [0],
                 frameRate: 5,
-            }
+            },
+            [anims.idlel]: {
+                frames: [9],
+                frameRate: 5,
+            },
+            [anims.bendr]: {
+                frames: [4],
+                frameRate: 5,
+            },
+            [anims.bendl]: {
+                frames: [5],
+                frameRate: 5,
+            },
         }
     });
 
     const sprite = Sprite({
         x: 0,
-        y: canvasWindow.nativeHeight - 8,
+        y: canvasWindow.nativeHeight - 16,
         animations: spriteSheet.animations
     })
 
     initKeys();
 
-    sprite.playAnimation(anims.idle);
-
+    sprite.playAnimation(anims.idler);
+    let left = false;
     const loop = GameLoop({ 
         update: function () {
             sprite.update();
-            if (keyPressed('arrowright')) {
+            if (keyPressed('arrowdown')) {
+                sprite.playAnimation(left? anims.bendl : anims.bendr);
+            } else if (keyPressed('arrowright')) {
                 sprite.playAnimation(anims.walkright)
                 sprite.x += 1;
+                left = false;
             } else if (keyPressed('arrowleft')) {
                 sprite.playAnimation(anims.walkleft)
                 sprite.x -= 1;
+                left = true;
             } else {
-                sprite.playAnimation(anims.idle)
+                sprite.playAnimation(left? anims.idlel : anims.idler);
             }
             if (sprite.x > canvas.width) {
                 sprite.x = -sprite.width;
