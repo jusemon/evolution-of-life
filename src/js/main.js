@@ -84,7 +84,8 @@ const EasingUtils = {
      * @returns {number} - The interpolated value at the given time.
      */
     easeIn: function (t, b, c, d) {
-        return c * (t /= d) * t + b;
+        const delta = c - b;
+        return delta * (t /= d) * t + b;
     },
 
     /**
@@ -184,6 +185,10 @@ const EasingUtils = {
         bendl: 'bendl',
         jumpr: 'jumpr',
         jumpl: 'jumpl',
+        flyr: 'flyr',
+        flyl: 'flyl',
+        eatr: 'eatr',
+        eatl: 'eatl',
     }
 
     const frameSize = 24;
@@ -230,6 +235,26 @@ const EasingUtils = {
                 frameRate: 5,
                 loop: false
             },
+            [anims.flyr]: {
+                frames: [12,13],
+                frameRate: 3,
+                
+            },
+            [anims.flyl]: {
+                frames: [29,28],
+                frameRate: 3,
+                
+            },
+            [anims.eatr]: {
+                frames: ['9..12'],
+                frameRate: 6,
+                
+            },
+            [anims.eatl]: {
+                frames: ['32..30'],
+                frameRate: 6,
+                
+            },
         }
     });
 
@@ -250,26 +275,30 @@ const EasingUtils = {
     const loop = GameLoop({ 
         update: function (dt) {
             player.update();
-            if (keyPressed('arrowdown')) {
+            if (keyPressed(['arrowdown', 's'])) {
                 player.playAnimation(player.left? anims.bendl : anims.bendr);
-            } else if (keyPressed('arrowright')) {
+            } else if (keyPressed(['arrowright', 'd'])) {
                 player.jumping() || player.playAnimation(anims.walkr)
                 player.x += 1;
                 player.left = false;
-            } else if (keyPressed('arrowleft')) {
-                player.jumping() ||player.playAnimation(anims.walkl)
+            } else if (keyPressed('arrowleft', 'a')) {
+                player.jumping() || player.playAnimation(anims.walkl)
                 player.x -= 1;
                 player.left = true;
             } else if(!player.jumping()) {
                 player.playAnimation(player.left? anims.idlel : anims.idler);
             }
 
-            if (!player.jumping() && keyPressed(['arrowup', 'space'])) {
+            if (!player.jumping() && keyPressed('space')) {
                 time = 0;
                 player.jumpingHeight = 30;
                 player.jumpingUp = true;
                 player.jumpingHeightPos = player.y - player.jumpingHeight;
                 player.jumpingStartPos = player.y;
+            }
+
+            if (!player.jumping() && keyPressed(['arrowup', 'w'])) {
+                player.playAnimation(player.left? anims.flyl : anims.flyr);
             }
 
             if (player.jumping()) {
@@ -286,9 +315,10 @@ const EasingUtils = {
                 }
                 if (player.jumpingDown) {
                     if (player.y < player.jumpingHeightPos + player.jumpingHeight) {
-                        player.y = EasingUtils.easeIn(time, player.jumpingHeightPos, player.jumpingStartPos - player.jumpingHeightPos, .5);
+                        player.y = EasingUtils.easeIn(time, player.jumpingHeightPos, player.jumpingStartPos, .5);
                     } else {
-                        player.jumpingDown = false;
+                        player.playAnimation(player.left? anims.bendl : anims.bendr);
+                        setTimeout(()=> player.jumpingDown = false, 100)
                     }
                 }
             }
