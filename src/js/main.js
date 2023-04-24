@@ -1,25 +1,25 @@
-import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, on, off, emit } from "kontra";
+import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed } from "kontra";
 import CanvasWindow from "./classes/canvas-windows";
 import tinymusic from "tinymusic";
 
 /**
  * Draws an image from pixel data using a specified color palette and flip option.
  *
- * @param {Object} options - Options for drawing the image.
- * @param {number[][]} options.data - The pixel data as a 2D array of numbers.
- * @param {string[]} [options.colors] - An array of color values as strings.
- * @param {boolean} [options.shouldFlip=false] - Whether to flip the image vertically.
+ * @param {number[][]} data - The pixel data as a 2D array of numbers.
+ * @param {number} width - The final image height.
+ * @param {string[]} [colors] - An array of color values as strings.
+ * @param {boolean} [shouldFlip=false] - Whether to flip the image vertically.
  * @returns {Promise<HTMLImageElement>} A promise that resolves with the generated image as an HTML image element.
  */
-const generatePixelArtImage = ({
+const generatePixelArtImage = (
     data,
+    width,
     colors = [],
     shouldFlip = false,
-}) => {
+) => {
     return new Promise((resolve, reject) => {
         try {
             const ctx = document.createElement('canvas').getContext('2d');
-            const width = data.reduce((w, r) => r.length > w ? r.length : w, 0);
             ctx.canvas.width = shouldFlip ? width * 2: width;
             ctx.canvas.height = data.length;
             ctx.beginPath();
@@ -27,9 +27,8 @@ const generatePixelArtImage = ({
                 const row = data[yIndex];
                 let xPos = (width * 2) - 1;
                 for (let xIndex = 0; xIndex < width; xIndex++) {
-                    const pixel = row[xIndex];
-                    if (pixel) {
-                        ctx.fillStyle = colors[pixel - 1];
+                    if (row[xIndex]) {
+                        ctx.fillStyle = colors[row[xIndex] - 1];
                         ctx.fillRect(xIndex, yIndex, 1, 1);
                         if (shouldFlip) {
                             ctx.fillRect(xPos, yIndex, 1, 1);
@@ -194,7 +193,7 @@ const EasingUtils = {
 
     const frameSize = 25;
     const spriteSheet = SpriteSheet({
-        image: await generatePixelArtImage({data: spriteData, shouldFlip: true, colors: palette }),
+        image: await generatePixelArtImage(spriteData, 504, palette, true),
         frameWidth: frameSize - 1,
         frameHeight: frameSize,
         animations: {
@@ -263,6 +262,7 @@ const EasingUtils = {
         x: 0,
         y: canvasWindow.nativeHeight - frameSize,
         animations: spriteSheet.animations,
+        jumpingHeight: 30,
         jumpingUp: false,
         jumpingDown: false,
         jumping: () => player.jumpingUp || player.jumpingDown,
@@ -293,7 +293,6 @@ const EasingUtils = {
 
             if (!player.jumping() && keyPressed('space')) {
                 time = 0;
-                player.jumpingHeight = 30;
                 player.jumpingUp = true;
                 player.jumpingHeightPos = player.y - player.jumpingHeight;
                 player.jumpingStartPos = player.y;
@@ -308,7 +307,7 @@ const EasingUtils = {
                 player.playAnimation(player.left? anims.jumpl : anims.jumpr);
                 if (player.jumpingUp) {
                     if (player.y > player.jumpingHeightPos) {
-                        player.y = EasingUtils.easeOut(time, player.jumpingStartPos, player.jumpingHeightPos, .5);
+                        player.y = EasingUtils.easeOut(time, player.jumpingStartPos, player.jumpingHeightPos, .4);
                     } else { 
                         time = 0;
                         player.jumpingUp = false;
@@ -317,7 +316,7 @@ const EasingUtils = {
                 }
                 if (player.jumpingDown) {
                     if (player.y < player.jumpingHeightPos + player.jumpingHeight) {
-                        player.y = EasingUtils.easeIn(time, player.jumpingHeightPos, player.jumpingStartPos, .5);
+                        player.y = EasingUtils.easeIn(time, player.jumpingHeightPos, player.jumpingStartPos, .4);
                     } else {
                         player.playAnimation(player.left? anims.bendl : anims.bendr);
                         setTimeout(()=> player.jumpingDown = false, 100)
