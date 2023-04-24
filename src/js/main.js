@@ -80,16 +80,6 @@ const EasingUtils = {
         windowPercentage: .9,
         canvas
     })
-    window.addEventListener('resize', () => {
-        canvasWindow.resize();
-    })
-    
-    window.addEventListener('load', () => {
-        // initialize native height/width
-        canvas.width = canvasWindow.canvasWidth;
-        canvas.height = canvasWindow.canvasHeight;
-        canvasWindow.resize();
-    })
 
     const anims = {
         walkr: 'walkr',

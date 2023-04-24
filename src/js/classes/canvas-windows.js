@@ -74,6 +74,17 @@ export default class CanvasWindow {
          * @member {number}
          */
         this.canvasHeight = this.nativeHeight;
+
+        window.addEventListener('resize', () => {
+            this.resize();
+        })
+        
+        window.addEventListener('load', () => {
+            // initialize native height/width
+            this.canvas.width = this.canvasWidth;
+            this.canvas.height = this.canvasHeight;
+            this.resize();
+        })
     }
 
     /**
