@@ -72,7 +72,7 @@ const EasingUtils = {
 (async () => {
     const { canvas } = init();
 
-    console.log("Tiny music loaded", {tinymusic});
+    console.log("Tiny music loaded", { tinymusic });
     const canvasWindow = new CanvasWindow({
         nativeWidth: 160,
         nativeHeight: 120,
@@ -141,24 +141,24 @@ const EasingUtils = {
                 loop: false
             },
             [anims.flyr]: {
-                frames: [12,13],
+                frames: [12, 13],
                 frameRate: 3,
-                
+
             },
             [anims.flyl]: {
-                frames: [29,28],
+                frames: [29, 28],
                 frameRate: 3,
-                
+
             },
             [anims.eatr]: {
                 frames: ['9..12'],
                 frameRate: 6,
-                
+
             },
             [anims.eatl]: {
                 frames: ['32..30'],
                 frameRate: 6,
-                
+
             },
         }
     });
@@ -179,11 +179,11 @@ const EasingUtils = {
     initKeys();
     let time = 0;
     player.playAnimation(anims.idler);
-    const loop = GameLoop({ 
+    const loop = GameLoop({
         update: function (dt) {
             player.update();
             if (keyPressed(['arrowdown', 's'])) {
-                player.playAnimation(player.left? anims.bendl : anims.bendr);
+                player.playAnimation(player.left ? anims.bendl : anims.bendr);
             } else if (keyPressed(['arrowright', 'd'])) {
                 player.jumping() || player.playAnimation(anims.walkr)
                 player.x += 1;
@@ -192,8 +192,9 @@ const EasingUtils = {
                 player.jumping() || player.playAnimation(anims.walkl)
                 player.x -= 1;
                 player.left = true;
-            } else if(!player.jumping()) {
-                player.playAnimation(player.left? anims.idlel : anims.idler);
+            } else {
+                // Default animation
+                player.jumping() || player.playAnimation(player.left ? anims.idlel : anims.idler);
             }
 
             if (!player.jumping() && keyPressed('space')) {
@@ -203,17 +204,29 @@ const EasingUtils = {
                 player.jumpingStartPos = player.y;
             }
 
+            const flyAnim = player.left ? anims.flyl : anims.flyr;
             if (!player.jumping() && keyPressed(['arrowup', 'w'])) {
-                player.playAnimation(player.left? anims.flyl : anims.flyr);
+                player.y -= 1;
+                player.flying = true;
+                player.grounded = false;
+                player.animations[flyAnim].frameRate = 10;
+                player.playAnimation(flyAnim);
+            } else {
+                player.flying = false;
+                if (!player.grounded) {
+                    player.animations[flyAnim].frameRate = 3;
+                    player.playAnimation(flyAnim);
+                    player.y += .5;
+                }
             }
 
             if (player.jumping()) {
                 time += dt;
-                player.playAnimation(player.left? anims.jumpl : anims.jumpr);
+                player.playAnimation(player.left ? anims.jumpl : anims.jumpr);
                 if (player.jumpingUp) {
                     if (player.y > player.jumpingHeightPos) {
                         player.y = EasingUtils.easeOut(time, player.jumpingStartPos, player.jumpingHeightPos, .4);
-                    } else { 
+                    } else {
                         time = 0;
                         player.jumpingUp = false;
                         player.jumpingDown = true;
@@ -223,8 +236,8 @@ const EasingUtils = {
                     if (player.y < player.jumpingHeightPos + player.jumpingHeight) {
                         player.y = EasingUtils.easeIn(time, player.jumpingHeightPos, player.jumpingStartPos, .4);
                     } else {
-                        player.playAnimation(player.left? anims.bendl : anims.bendr);
-                        setTimeout(()=> player.jumpingDown = false, 100)
+                        player.playAnimation(player.left ? anims.bendl : anims.bendr);
+                        setTimeout(() => player.jumpingDown = false, 100)
                     }
                 }
             }
