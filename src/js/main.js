@@ -92,8 +92,8 @@ const EasingUtils = {
         jumpl: 'jumpl',
         flyr: 'flyr',
         flyl: 'flyl',
-        eatr: 'eatr',
-        eatl: 'eatl',
+        stfr: 'stfr',
+        stfl: 'stfl',
     }
 
     const frameSize = 25;
@@ -150,15 +150,13 @@ const EasingUtils = {
                 frameRate: 3,
 
             },
-            [anims.eatr]: {
-                frames: ['9..12'],
-                frameRate: 6,
-
+            [anims.stfr]: {
+                frames: ['8..12'],
+                frameRate: 16
             },
-            [anims.eatl]: {
-                frames: ['32..30'],
-                frameRate: 6,
-
+            [anims.stfl]: {
+                frames: ['33..29'],
+                frameRate: 16
             },
         }
     });
@@ -173,12 +171,12 @@ const EasingUtils = {
         jumping: () => player.jumpingUp || player.jumpingDown,
         grounded: true,
         flying: false,
+        runFlying: true,
         left: false
     })
 
     initKeys();
     let time = 0;
-    player.playAnimation(anims.idler);
     const loop = GameLoop({
         update: function (dt) {
             player.update();
@@ -188,16 +186,17 @@ const EasingUtils = {
                 player.jumping() || player.playAnimation(anims.walkr)
                 player.x += 1;
                 player.left = false;
-            } else if (keyPressed('arrowleft', 'a')) {
+            } else if (keyPressed(['arrowleft', 'a'])) {
                 player.jumping() || player.playAnimation(anims.walkl)
                 player.x -= 1;
                 player.left = true;
             } else {
                 // Default animation
-                player.jumping() || player.playAnimation(player.left ? anims.idlel : anims.idler);
+                player.jumping() || player.flying || player.grounded && player.playAnimation(player.left ? anims.idlel : anims.idler);
+                // player.playAnimation(anims.stfr);
             }
 
-            if (!player.jumping() && keyPressed('space')) {
+            if (!player.jumping() && !player.flying && player.grounded && keyPressed('space')) {
                 time = 0;
                 player.jumpingUp = true;
                 player.jumpingHeightPos = player.y - player.jumpingHeight;
@@ -205,14 +204,26 @@ const EasingUtils = {
             }
 
             const flyAnim = player.left ? anims.flyl : anims.flyr;
-            if (!player.jumping() && keyPressed(['arrowup', 'w'])) {
+            const flyAnimStart = player.left ? anims.stfl : anims.stfr;
+            const { frameRate, frames } = player.animations[flyAnimStart];
+            const duration = Math.floor(1000 / (frameRate / frames.length));
+            if (keyPressed(['arrowup', 'w']) || player.flying) {
+                player.jumpingDown = player.jumpingUp = false;
                 player.y -= 1;
-                player.flying = true;
                 player.grounded = false;
-                player.animations[flyAnim].frameRate = 10;
-                player.playAnimation(flyAnim);
+                if (player.runFlying) {
+                    player.flying = true;
+                    player.playAnimation(flyAnimStart);
+                    setTimeout(()=> {
+                        player.runFlying = false
+                        player.animations[flyAnimStart].reset();
+                    }, duration)
+                } else {
+                    player.flying = false
+                    player.animations[flyAnim].frameRate = 10;
+                    player.playAnimation(flyAnim);
+                }
             } else {
-                player.flying = false;
                 if (!player.grounded) {
                     player.animations[flyAnim].frameRate = 3;
                     player.playAnimation(flyAnim);
@@ -252,8 +263,36 @@ const EasingUtils = {
                 player.y = 0;
             } else if (player.y + player.height > canvas.height) {
                 player.y = canvas.height - player.height;
+                player.flying = false;
                 player.grounded = true;
+                player.runFlying = true;
             }
+
+            
+
+
+            // For debugging
+            let element = document.getElementById('debug');
+            if (!element) {
+                element = document.createElement('div');
+                element.id = 'debug';
+                document.getElementById('game').appendChild(element);
+            }
+            element.innerText = JSON.stringify(Object.keys(player).reduce((result, key) => {
+                if (typeof player[key] !== 'object' && !key.startsWith('_')) {
+                    result[key] = player[key];
+                }
+                return result;
+            }, {
+                animations: {
+                    [anims.stfr]: {
+                        isStopped: player.animations[anims.stfr].isStopped,
+                        frames: player.animations[anims.stfr].frames,
+                        frameRate: player.animations[anims.stfr].frameRate,
+                        duration
+                    }
+                }
+            }), null, 2)
         },
         render: function () {
             player.render();

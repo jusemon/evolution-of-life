@@ -1,7 +1,7 @@
 'use strict';
 
 const gulp = require('gulp');
-const gulp_zip = require('gulp-zip');
+const gzip = require('gulp-gzip');
 const rename = require('gulp-rename');
 const util = require('gulp-util');
 const htmlmin = require('gulp-htmlmin');
@@ -12,12 +12,12 @@ function zip() {
   return gulp.src('./dist/index.min.html')
     .pipe(htmlmin({ collapseWhitespace: true }))
     .pipe(rename('index.html'))
-    .pipe(gulp_zip('game.zip'))
+    .pipe(gzip({ extension: 'zip' }))
     .pipe(gulp.dest('dist'));
 }
 
 function report(done) {
-  fs.stat('./dist/game.zip', (err, data) => {
+  fs.stat('./dist/index.html.zip', (err, data) => {
     if (err) {
       util.beep();
       return done(err);
