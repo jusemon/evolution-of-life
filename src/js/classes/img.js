@@ -81,4 +81,18 @@ export default class Img {
             }
         });
     };
+
+    async download() {
+        const img = await this.getImage();
+      
+        // Create a temporary anchor element
+        const link = document.createElement('a');
+        link.href = img.src;
+        link.download = 'image.png';
+      
+        // Dispatch a click event on the anchor element to initiate the download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
 }

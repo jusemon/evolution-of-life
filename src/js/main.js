@@ -1,7 +1,7 @@
-import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed } from "kontra";
+import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, TileEngine } from "kontra";
 import tinymusic from "tinymusic";
 import CanvasWindow from "./classes/canvas-windows";
-import { sprite as spriteAsset } from "./assets";
+import { sprite as spriteAsset, tileset as tilesetAsset } from "./assets";
 
 /**
  * A collection of easing functions that can be used in animations.
@@ -160,6 +160,36 @@ const EasingUtils = {
             },
         }
     });
+    const tile = TileEngine({
+        tilewidth: 16,
+        tileheight: 16,
+
+        // map size in tiles
+        width: 10,
+        height: 8,
+
+        // tileset object
+        tilesets: [
+            {
+                firstgid: 1,
+                image: await tilesetAsset.getImage(),
+                margin: 2,
+            },
+        ],
+
+        // layer object
+        layers: [
+            {
+                name: 'ground',
+                data: [
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 18, 18, 18, 18, 18, 18, 18, 18,
+                    18, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
+                ],
+            },
+        ],
+    });
 
     const player = Sprite({
         x: 0,
@@ -214,7 +244,7 @@ const EasingUtils = {
                 if (player.runFlying) {
                     player.flying = true;
                     player.playAnimation(flyAnimStart);
-                    setTimeout(()=> {
+                    setTimeout(() => {
                         player.runFlying = false
                         player.animations[flyAnimStart].reset();
                     }, duration)
@@ -259,16 +289,24 @@ const EasingUtils = {
                 player.x = canvas.width;
             }
 
+            const isInGround = tile.layerCollidesWith('ground', player);
             if (player.y < 0) {
                 player.y = 0;
-            } else if (player.y + player.height > canvas.height) {
-                player.y = canvas.height - player.height;
+            } else if (player.y + player.height > canvas.height || isInGround) {
+                if (isInGround) {
+                    while (tile.layerCollidesWith('ground', player)) {
+                        player.y--;
+                    }
+                    player.y++;
+                } else {
+                    player.y = canvas.height - player.height;
+                }
                 player.flying = false;
                 player.grounded = true;
                 player.runFlying = true;
             }
 
-            
+
 
 
             // For debugging
@@ -295,6 +333,7 @@ const EasingUtils = {
             }), null, 2)
         },
         render: function () {
+            tile.render();
             player.render();
         }
     });
