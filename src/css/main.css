@@ -15,6 +15,7 @@ body {
 }
 
 canvas {
+    background-color: #fbf7f3;
     border: 1px solid black;
     image-rendering: pixelated;
     image-rendering: crisp-edges;

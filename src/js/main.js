@@ -2,72 +2,7 @@ import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, TileEngine }
 import tinymusic from "tinymusic";
 import CanvasWindow from "./classes/canvas-windows";
 import { sprite as spriteAsset, tileset as tilesetAsset } from "./assets";
-
-/**
- * A collection of easing functions that can be used in animations.
- * @namespace EasingUtils
- */
-const EasingUtils = {
-
-    /**
-     * Linear easing function.
-     * @memberof EasingUtils
-     * @function linear
-     * @param {number} t - The current time (in milliseconds).
-     * @param {number} b - The start value.
-     * @param {number} c - The change in value.
-     * @param {number} d - The total duration of the animation.
-     * @returns {number} - The interpolated value at the given time.
-     */
-    linear: function (t, b, c, d) {
-        return c * t / d + b;
-    },
-
-    /**
-     * Ease-in easing function.
-     * @memberof EasingUtils
-     * @function easeIn
-     * @param {number} t - The current time (in milliseconds).
-     * @param {number} b - The start value.
-     * @param {number} c - The change in value.
-     * @param {number} d - The total duration of the animation.
-     * @returns {number} - The interpolated value at the given time.
-     */
-    easeIn: function (t, b, c, d) {
-        const delta = c - b;
-        return delta * (t /= d) * t + b;
-    },
-
-    /**
-     * Ease-out easing function.
-     * @memberof EasingUtils
-     * @function easeOut
-     * @param {number} t - The current time (in milliseconds).
-     * @param {number} b - The start value.
-     * @param {number} c - The change in value.
-     * @param {number} d - The total duration of the animation.
-     * @returns {number} - The interpolated value at the given time.
-     */
-    easeOut: function easeOut(t, b, c, d) {
-        const delta = c - b;
-        return -delta * (t /= d) * (t - 2) + b;
-    },
-
-    /**
-     * Ease-in-out easing function.
-     * @memberof EasingUtils
-     * @function easeInOut
-     * @param {number} t - The current time (in milliseconds).
-     * @param {number} b - The start value.
-     * @param {number} c - The change in value.
-     * @param {number} d - The total duration of the animation.
-     * @returns {number} - The interpolated value at the given time.
-     */
-    easeInOut: function (t, b, c, d) {
-        if ((t /= d / 2) < 1) return c / 2 * t * t + b;
-        return -c / 2 * ((--t) * (t - 2) - 1) + b;
-    }
-};
+import { EasingUtils } from "./classes/easing";
 
 (async () => {
     const { canvas } = init();
@@ -75,7 +10,7 @@ const EasingUtils = {
     console.log("Tiny music loaded", { tinymusic });
     const canvasWindow = new CanvasWindow({
         nativeWidth: 160,
-        nativeHeight: 120,
+        nativeHeight: 144,
         maxMultiplier: 10,
         windowPercentage: .9,
         canvas
@@ -160,36 +95,53 @@ const EasingUtils = {
             },
         }
     });
-    const tile = TileEngine({
+
+    const speed = 1;
+
+    const groundTiles = [19, 20, 24, 25, 32, 35, 36, 37, 38, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 57]
+    const fullTiles = [
+        [0, 2, 3, 4, 0, 5, 6, 7, 8, 9, 10, 11, 0, 0, 5, 6, 7, 0, 5, 6, 7, 2, 3, 4, 0, 2, 3, 4, 0, 5, 6, 7, 2, 3, 4, 0, 12, 0, 2, 3, 3, 4, 5, 6, 7, 0, 2, 3, 4, 12, 0, 0, 5, 6, 7, 2, 3, 3, 4, 0, 0, 0, 13, 0, 0, 14, 2, 3, 4, 8, 9, 10, 11, 12, 0, 5, 6, 7, 0, 0, 0, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [4, 5, 6, 7, 0, 12, 0, 0, 13, 0, 0, 14, 9, 10, 11, 0, 0, 0, 0, 0, 0, 5, 6, 7, 0, 5, 6, 7, 0, 12, 0, 0, 5, 6, 7, 12, 0, 0, 5, 6, 6, 7, 0, 0, 12, 0, 5, 6, 7, 0, 2, 3, 4, 0, 0, 5, 6, 6, 7, 0, 12, 2, 15, 0, 0, 16, 5, 6, 7, 13, 0, 0, 14, 9, 10, 11, 0, 0, 0, 12, 0, 5, 6, 7, 2, 3, 4, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0],
+        [7, 12, 0, 0, 2, 3, 4, 12, 15, 0, 0, 16, 0, 0, 14, 12, 0, 8, 9, 10, 11, 12, 17, 18, 2, 3, 4, 12, 0, 0, 2, 3, 4, 0, 0, 19, 20, 2, 3, 4, 0, 0, 8, 9, 10, 11, 0, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 5, 15, 0, 8, 9, 10, 11, 12, 21, 0, 0, 16, 0, 0, 14, 12, 0, 0, 0, 0, 0, 0, 0, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 12],
+        [3, 4, 17, 18, 5, 6, 7, 2, 15, 17, 18, 16, 0, 0, 16, 3, 4, 13, 0, 0, 14, 0, 22, 23, 5, 6, 7, 2, 3, 4, 5, 6, 7, 0, 2, 24, 25, 5, 6, 7, 0, 0, 13, 26, 0, 14, 0, 5, 6, 7, 0, 0, 0, 12, 2, 3, 4, 0, 0, 2, 3, 4, 15, 0, 13, 17, 18, 14, 17, 18, 0, 8, 9, 10, 11, 27, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 28, 28, 28, 28, 28, 28],
+        [6, 7, 22, 23, 0, 0, 0, 5, 21, 22, 23, 9, 10, 11, 16, 6, 7, 21, 0, 0, 27, 29, 23, 30, 29, 29, 29, 5, 6, 7, 0, 0, 23, 0, 5, 24, 25, 0, 0, 0, 17, 18, 15, 31, 0, 16, 23, 0, 0, 0, 19, 20, 0, 0, 19, 32, 20, 0, 0, 5, 6, 7, 15, 0, 21, 23, 33, 27, 22, 23, 0, 34, 0, 0, 14, 19, 32, 32, 32, 35, 0, 0, 0, 0, 2, 3, 4, 0, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 37, 38, 38, 38, 38, 38, 38, 38, 38],
+        [39, 29, 23, 30, 29, 0, 0, 29, 29, 23, 30, 29, 29, 14, 40, 29, 29, 29, 19, 32, 32, 32, 32, 32, 32, 19, 20, 39, 29, 29, 29, 0, 30, 18, 29, 24, 25, 39, 29, 29, 23, 23, 15, 41, 0, 16, 30, 18, 39, 19, 42, 25, 3, 4, 24, 42, 42, 20, 39, 39, 29, 0, 21, 29, 39, 30, 23, 39, 23, 30, 29, 29, 39, 19, 32, 42, 42, 43, 44, 45, 0, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 36, 37, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38],
+        [32, 46, 46, 46, 32, 32, 32, 20, 32, 32, 32, 32, 32, 32, 46, 32, 32, 32, 42, 47, 42, 47, 47, 47, 42, 24, 42, 46, 32, 20, 32, 32, 46, 46, 46, 47, 47, 46, 46, 46, 46, 32, 46, 46, 46, 46, 46, 46, 46, 42, 42, 25, 6, 7, 24, 42, 42, 47, 46, 46, 46, 46, 32, 46, 32, 46, 46, 46, 46, 32, 32, 32, 32, 42, 42, 42, 48, 49, 50, 0, 0, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 51, 52, 52, 52, 53, 37, 38, 38, 38, 38, 38],
+        [54, 55, 55, 55, 54, 47, 54, 25, 47, 54, 47, 42, 47, 54, 55, 54, 47, 54, 54, 55, 54, 55, 55, 55, 54, 24, 54, 55, 54, 47, 20, 54, 55, 55, 55, 55, 55, 55, 55, 55, 55, 54, 55, 55, 55, 55, 55, 55, 55, 54, 47, 25, 56, 56, 24, 47, 54, 55, 55, 55, 55, 55, 54, 55, 54, 55, 55, 55, 55, 54, 42, 47, 47, 54, 47, 48, 49, 57, 50, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 51, 52, 52, 52, 52, 51, 52, 52, 52, 52, 52],
+        Array(110).fill(0)
+    ];
+    const groundTileset = fullTiles.map(tiles => tiles.map(tile => groundTiles.includes(tile) ? tile : 0)).flat();
+    const backgroundTileset = fullTiles.map(tiles => tiles.map(tile => groundTiles.includes(tile) ? 0 : tile)).flat();
+
+    const tileEngine = TileEngine({
         tilewidth: 16,
         tileheight: 16,
 
         // map size in tiles
-        width: 10,
-        height: 8,
+        width: 110,
+        height: 9,
 
         // tileset object
         tilesets: [
             {
                 firstgid: 1,
                 image: await tilesetAsset.getImage(),
-                margin: 2,
             },
         ],
 
         // layer object
         layers: [
             {
+                name: 'background',
+                data: backgroundTileset,
+            },
+            {
                 name: 'ground',
-                data: [
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 18, 18, 18, 18, 18, 18, 18, 18,
-                    18, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,
-                ],
+                data: groundTileset,
             },
         ],
     });
+    tileEngine.sy = 32;
 
     const player = Sprite({
         x: 0,
@@ -203,27 +155,30 @@ const EasingUtils = {
         flying: false,
         runFlying: true,
         left: false
-    })
+    });
+
+    tileEngine.add(player)
 
     initKeys();
     let time = 0;
     const loop = GameLoop({
         update: function (dt) {
+            if (keyPressed(['f'])) {
+                spriteAsset.download();
+            }
             player.update();
             if (keyPressed(['arrowdown', 's'])) {
                 player.playAnimation(player.left ? anims.bendl : anims.bendr);
             } else if (keyPressed(['arrowright', 'd'])) {
                 player.jumping() || player.playAnimation(anims.walkr)
-                player.x += 1;
+                player.x += (speed * 1);
                 player.left = false;
             } else if (keyPressed(['arrowleft', 'a'])) {
                 player.jumping() || player.playAnimation(anims.walkl)
-                player.x -= 1;
+                player.x -= (speed * 1);
                 player.left = true;
             } else {
-                // Default animation
                 player.jumping() || player.flying || player.grounded && player.playAnimation(player.left ? anims.idlel : anims.idler);
-                // player.playAnimation(anims.stfr);
             }
 
             if (!player.jumping() && !player.flying && player.grounded && keyPressed('space')) {
@@ -283,18 +238,20 @@ const EasingUtils = {
                 }
             }
 
-            if (player.x > canvas.width) {
-                player.x = -player.width;
-            } else if (player.x < -player.width) {
-                player.x = canvas.width;
+            if (player.x > (tileEngine.width * tileEngine.tilewidth)) {
+                player.x = (tileEngine.width * tileEngine.tilewidth) - player.height + 4;
+            } else if (player.x < -4) {
+                player.x = -4
+                player.jumping() || player.grounded && player.playAnimation(player.left ? anims.idlel : anims.idler);
             }
 
-            const isInGround = tile.layerCollidesWith('ground', player);
+            // Collisions
+            const isInGround = tileEngine.layerCollidesWith('ground', player);
             if (player.y < 0) {
                 player.y = 0;
             } else if (player.y + player.height > canvas.height || isInGround) {
                 if (isInGround) {
-                    while (tile.layerCollidesWith('ground', player)) {
+                    while (tileEngine.layerCollidesWith('ground', player)) {
                         player.y--;
                     }
                     player.y++;
@@ -306,35 +263,37 @@ const EasingUtils = {
                 player.runFlying = true;
             }
 
-
-
+            // Camera
+            tileEngine.sx = (player.x + (player.width / 2)) - (canvas.width / 2);
 
             // For debugging
-            let element = document.getElementById('debug');
-            if (!element) {
-                element = document.createElement('div');
-                element.id = 'debug';
-                document.getElementById('game').appendChild(element);
-            }
-            element.innerText = JSON.stringify(Object.keys(player).reduce((result, key) => {
-                if (typeof player[key] !== 'object' && !key.startsWith('_')) {
-                    result[key] = player[key];
+            const debug = false
+            if (debug) {
+                let element = document.getElementById('debug');
+                if (!element) {
+                    element = document.createElement('div');
+                    element.id = 'debug';
+                    document.getElementById('game').appendChild(element);
                 }
-                return result;
-            }, {
-                animations: {
-                    [anims.stfr]: {
-                        isStopped: player.animations[anims.stfr].isStopped,
-                        frames: player.animations[anims.stfr].frames,
-                        frameRate: player.animations[anims.stfr].frameRate,
-                        duration
+                element.innerText = JSON.stringify(Object.keys(player).reduce((result, key) => {
+                    if (typeof player[key] !== 'object' && !key.startsWith('_')) {
+                        result[key] = player[key];
                     }
-                }
-            }), null, 2)
+                    return result;
+                }, {
+                    animations: {
+                        [anims.stfr]: {
+                            isStopped: player.animations[anims.stfr].isStopped,
+                            frames: player.animations[anims.stfr].frames,
+                            frameRate: player.animations[anims.stfr].frameRate,
+                            duration
+                        }
+                    }
+                }), null, 2)
+            }
         },
         render: function () {
-            tile.render();
-            player.render();
+            tileEngine.render();
         }
     });
 
