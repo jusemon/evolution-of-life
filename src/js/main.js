@@ -1,4 +1,4 @@
-import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, TileEngine, clamp, lerp } from "kontra";
+import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, TileEngine, clamp } from "kontra";
 import tinymusic from "tinymusic";
 import CanvasWindow from "./classes/canvas-windows";
 import { backgroundTilemap, groundTilemap, spriteImg, tilesetImg } from "./assets";
@@ -101,7 +101,6 @@ console.log("Tiny music loaded", { tinymusic });
         jumpingDown: false,
         jumping: () => player.jumpingUp || player.jumpingDown,
         grounded: true,
-        flying: false,
         runFlying: true,
         left: false
     });
@@ -156,12 +155,12 @@ console.log("Tiny music loaded", { tinymusic });
                 if (!player.jumping() && player.dx !== 0) {
                     player.playAnimation(player.left ? Anims.Walkl : Anims.Walkr);
                 } else {
-                    player.flying || player.grounded && player.playAnimation(player.left ? Anims.Idlel : Anims.Idler)
+                    player.grounded && player.playAnimation(player.left ? Anims.Idlel : Anims.Idler)
                 }
             }
 
             // Jumping
-            if (!player.jumping() && !player.flying && player.grounded && keyPressed('space')) {
+            if (!player.jumping() && player.grounded && keyPressed('space')) {
                 time = 0;
                 player.jumpingUp = true;
                 player.jumpingHeightPos = player.y - player.jumpingHeight;
@@ -194,19 +193,17 @@ console.log("Tiny music loaded", { tinymusic });
             const flyAnimStart = player.left ? Anims.Stfl : Anims.Stfr;
             const { frameRate, frames } = player.animations[flyAnimStart];
             const duration = Math.floor(1000 / (frameRate / frames.length));
-            if (keyPressed(['arrowup', 'w']) || player.flying) {
+            if (keyPressed(['arrowup', 'w'])) {
                 player.jumpingDown = player.jumpingUp = false;
                 player.y -= 1;
                 player.grounded = false;
                 if (player.runFlying) {
-                    player.flying = true;
                     player.playAnimation(flyAnimStart);
                     setTimeout(() => {
                         player.runFlying = false
                         player.animations[flyAnimStart].reset();
                     }, duration)
                 } else {
-                    player.flying = false
                     player.animations[flyAnim].frameRate = 10;
                     player.playAnimation(flyAnim);
                 }
@@ -218,39 +215,42 @@ console.log("Tiny music loaded", { tinymusic });
                 }
             }
 
-            // Collisions 
+            // Collisions
+            if (player.y < 0) {
+                player.y = 0;;
+            } else if (player.y + player.height > canvas.height) {
+                player.y = canvas.height - player.height;
+                player.grounded = true;
+                player.runFlying = true
+            }
+
             if (player.x > (tileEngine.width * tileEngine.tilewidth)) {
                 player.x = (tileEngine.width * tileEngine.tilewidth) - player.height + 4;
             } else if (player.x < -4) {
                 player.x = -4
                 player.jumping() || player.grounded && player.playAnimation(player.left ? Anims.Idlel : Anims.Idler);
             }
-            const offset = { x: -4, width: -8, height: -8 };
-            const isInGround = tileEngine.layerCollidesWith(Layers.Ground, collitionOffset({ object: player, ...offset }));
-            if (player.y < 0) {
-                player.y = 0;
-            } else if (player.y + player.height > canvas.height || isInGround) {
-                if (isInGround) {
-                    while (tileEngine.layerCollidesWith(Layers.Ground, collitionOffset({ object: player, ...offset }))) {
-                        player.y--;
-                    }
-                    player.y++;
-                } else {
-                    player.y = canvas.height - player.height;
+            const offset = { x: player.left ? 4 : -4, width: -8, height: -8 };
+            const isCollidingWithGround = tileEngine.layerCollidesWith(Layers.Ground, collitionOffset({ object: player, ...offset }));
+
+            if (isCollidingWithGround) {
+                while (tileEngine.layerCollidesWith(Layers.Ground, collitionOffset({ object: player, ...offset }))) {
+                    player.y--;
                 }
-                player.y = Math.round(player.y);
-                player.flying = false;
+                // player.y++;
+                player.runFlying = true
                 player.grounded = true;
-                player.runFlying = true;
+
             }
 
             // Camera
             const applyRound = player.left ? Math.floor : Math.ceil;
             player.x = applyRound(player.x);
+            player.y = Math.round(player.y);
             tileEngine.sx = applyRound((player.x + (player.width / 2)) - (canvas.width / 2));
 
             // For debugging
-            const debug = false
+            const debug = true
             if (debug) {
                 let element = document.getElementById('debug');
                 if (!element) {
@@ -263,16 +263,7 @@ console.log("Tiny music loaded", { tinymusic });
                         result[key] = player[key];
                     }
                     return result;
-                }, {
-                    animations: {
-                        [Anims.Stfr]: {
-                            isStopped: player.animations[Anims.Stfr].isStopped,
-                            frames: player.animations[Anims.Stfr].frames,
-                            frameRate: player.animations[Anims.Stfr].frameRate,
-                            duration
-                        }
-                    }
-                }), null, 2)
+                }, {}), null, 2)
             }
         },
         render: function () {
