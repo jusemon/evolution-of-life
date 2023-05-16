@@ -57,7 +57,7 @@ export default class Img {
                     let xPos = (this.width * 2) - 1;
                     for (let xIndex = 0; xIndex < this.width; xIndex++) {
                         if (this.data[yIndex * this.width + xIndex]) {
-                            ctx.fillStyle = "#" + this.colors.substr(6 * (this.data[yIndex * this.width + xIndex] - 1), 6)
+                            ctx.fillStyle = "#" + this.colors.substr(6 * (this.data[yIndex * this.width + xIndex] - 1), 6);
                             ctx.fillRect(xIndex, yIndex, 1, 1);
                             if (this.shouldFlip) {
                                 ctx.fillRect(xPos, yIndex, 1, 1);
@@ -67,10 +67,9 @@ export default class Img {
                     }
                 }
 
-                const img = document.createElement('img');
+                const img = new Image();
                 img.onload = () => {
-                    this.image = img;
-                    resolve(img);
+                    resolve(this.image = img);
                 };
                 img.onerror = (err) => {
                     reject(err);
@@ -84,15 +83,15 @@ export default class Img {
 
     async download() {
         const img = await this.getImage();
-      
+
         // Create a temporary anchor element
         const link = document.createElement('a');
         link.href = img.src;
         link.download = 'image.png';
-      
+
         // Dispatch a click event on the anchor element to initiate the download
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      }
+    }
 }
