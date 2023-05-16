@@ -1,148 +1,94 @@
 import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, TileEngine } from "kontra";
 import tinymusic from "tinymusic";
 import CanvasWindow from "./classes/canvas-windows";
-import { sprite as spriteAsset, tileset as tilesetAsset } from "./assets";
-import { EasingUtils } from "./classes/easing";
+import { backgroundTilemap, groundTilemap, spriteImg, tilesetImg } from "./assets";
+import { Easing } from "./classes/easing";
+import { Anims, Layers } from "./enums";
+
+console.log("Tiny music loaded", { tinymusic });
+
+
 
 (async () => {
-    const { canvas } = init();
+    // Constants 
+    const frameSize = 25;
+    const speed = 1;
 
-    console.log("Tiny music loaded", { tinymusic });
+    // Variables
+    let time = 0;
+
+    // Game Elements
+    const { canvas } = init();
     const canvasWindow = new CanvasWindow({
         nativeWidth: 160,
         nativeHeight: 144,
         maxMultiplier: 10,
         windowPercentage: .9,
         canvas
-    })
-
-    const anims = {
-        walkr: 'walkr',
-        walkl: 'walkl',
-        idler: 'idler',
-        idlel: 'idlel',
-        bendr: 'bendr',
-        bendl: 'bendl',
-        jumpr: 'jumpr',
-        jumpl: 'jumpl',
-        flyr: 'flyr',
-        flyl: 'flyl',
-        stfr: 'stfr',
-        stfl: 'stfl',
-    }
-
-    const frameSize = 25;
+    });
     const spriteSheet = SpriteSheet({
-        image: await spriteAsset.getImage(),
+        image: await spriteImg.getImage(),
         frameWidth: frameSize - 1,
         frameHeight: frameSize,
         animations: {
-            [anims.walkr]: {
+            [Anims.Walkr]: {
                 frames: ['1..3', 2],
                 frameRate: 6
             },
-            [anims.walkl]: {
+            [Anims.Walkl]: {
                 frames: ['40..38', 39],
                 frameRate: 6
             },
-            [anims.idler]: {
+            [Anims.Idler]: {
                 frames: [0],
                 frameRate: 1,
                 loop: false
             },
-            [anims.idlel]: {
+            [Anims.Idlel]: {
                 frames: [41],
                 frameRate: 1,
                 loop: false
             },
-            [anims.bendr]: {
+            [Anims.Bendr]: {
                 frames: [6],
                 frameRate: 1,
                 loop: false
             },
-            [anims.bendl]: {
+            [Anims.Bendl]: {
                 frames: [35],
                 frameRate: 1,
                 loop: false
             },
-            [anims.jumpr]: {
+            [Anims.Jumpr]: {
                 frames: [4],
                 frameRate: 1,
                 loop: false
             },
-            [anims.jumpl]: {
+            [Anims.Jumpl]: {
                 frames: [37],
                 frameRate: 5,
                 loop: false
             },
-            [anims.flyr]: {
+            [Anims.Flyr]: {
                 frames: [12, 13],
                 frameRate: 3,
 
             },
-            [anims.flyl]: {
+            [Anims.Flyl]: {
                 frames: [29, 28],
                 frameRate: 3,
 
             },
-            [anims.stfr]: {
+            [Anims.Stfr]: {
                 frames: ['8..12'],
                 frameRate: 16
             },
-            [anims.stfl]: {
+            [Anims.Stfl]: {
                 frames: ['33..29'],
                 frameRate: 16
             },
         }
     });
-
-    const speed = 1;
-
-    const groundTiles = [19, 20, 24, 25, 32, 35, 36, 37, 38, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 57]
-    const fullTiles = [
-        [0, 2, 3, 4, 0, 5, 6, 7, 8, 9, 10, 11, 0, 0, 5, 6, 7, 0, 5, 6, 7, 2, 3, 4, 0, 2, 3, 4, 0, 5, 6, 7, 2, 3, 4, 0, 12, 0, 2, 3, 3, 4, 5, 6, 7, 0, 2, 3, 4, 12, 0, 0, 5, 6, 7, 2, 3, 3, 4, 0, 0, 0, 13, 0, 0, 14, 2, 3, 4, 8, 9, 10, 11, 12, 0, 5, 6, 7, 0, 0, 0, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [4, 5, 6, 7, 0, 12, 0, 0, 13, 0, 0, 14, 9, 10, 11, 0, 0, 0, 0, 0, 0, 5, 6, 7, 0, 5, 6, 7, 0, 12, 0, 0, 5, 6, 7, 12, 0, 0, 5, 6, 6, 7, 0, 0, 12, 0, 5, 6, 7, 0, 2, 3, 4, 0, 0, 5, 6, 6, 7, 0, 12, 2, 15, 0, 0, 16, 5, 6, 7, 13, 0, 0, 14, 9, 10, 11, 0, 0, 0, 12, 0, 5, 6, 7, 2, 3, 4, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0],
-        [7, 12, 0, 0, 2, 3, 4, 12, 15, 0, 0, 16, 0, 0, 14, 12, 0, 8, 9, 10, 11, 12, 17, 18, 2, 3, 4, 12, 0, 0, 2, 3, 4, 0, 0, 19, 20, 2, 3, 4, 0, 0, 8, 9, 10, 11, 0, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 5, 15, 0, 8, 9, 10, 11, 12, 21, 0, 0, 16, 0, 0, 14, 12, 0, 0, 0, 0, 0, 0, 0, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 12],
-        [3, 4, 17, 18, 5, 6, 7, 2, 15, 17, 18, 16, 0, 0, 16, 3, 4, 13, 0, 0, 14, 0, 22, 23, 5, 6, 7, 2, 3, 4, 5, 6, 7, 0, 2, 24, 25, 5, 6, 7, 0, 0, 13, 26, 0, 14, 0, 5, 6, 7, 0, 0, 0, 12, 2, 3, 4, 0, 0, 2, 3, 4, 15, 0, 13, 17, 18, 14, 17, 18, 0, 8, 9, 10, 11, 27, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 28, 28, 28, 28, 28, 28],
-        [6, 7, 22, 23, 0, 0, 0, 5, 21, 22, 23, 9, 10, 11, 16, 6, 7, 21, 0, 0, 27, 29, 23, 30, 29, 29, 29, 5, 6, 7, 0, 0, 23, 0, 5, 24, 25, 0, 0, 0, 17, 18, 15, 31, 0, 16, 23, 0, 0, 0, 19, 20, 0, 0, 19, 32, 20, 0, 0, 5, 6, 7, 15, 0, 21, 23, 33, 27, 22, 23, 0, 34, 0, 0, 14, 19, 32, 32, 32, 35, 0, 0, 0, 0, 2, 3, 4, 0, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 37, 38, 38, 38, 38, 38, 38, 38, 38],
-        [39, 29, 23, 30, 29, 0, 0, 29, 29, 23, 30, 29, 29, 14, 40, 29, 29, 29, 19, 32, 32, 32, 32, 32, 32, 19, 20, 39, 29, 29, 29, 0, 30, 18, 29, 24, 25, 39, 29, 29, 23, 23, 15, 41, 0, 16, 30, 18, 39, 19, 42, 25, 3, 4, 24, 42, 42, 20, 39, 39, 29, 0, 21, 29, 39, 30, 23, 39, 23, 30, 29, 29, 39, 19, 32, 42, 42, 43, 44, 45, 0, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 36, 37, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38],
-        [32, 46, 46, 46, 32, 32, 32, 20, 32, 32, 32, 32, 32, 32, 46, 32, 32, 32, 42, 47, 42, 47, 47, 47, 42, 24, 42, 46, 32, 20, 32, 32, 46, 46, 46, 47, 47, 46, 46, 46, 46, 32, 46, 46, 46, 46, 46, 46, 46, 42, 42, 25, 6, 7, 24, 42, 42, 47, 46, 46, 46, 46, 32, 46, 32, 46, 46, 46, 46, 32, 32, 32, 32, 42, 42, 42, 48, 49, 50, 0, 0, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 51, 52, 52, 52, 53, 37, 38, 38, 38, 38, 38],
-        [54, 55, 55, 55, 54, 47, 54, 25, 47, 54, 47, 42, 47, 54, 55, 54, 47, 54, 54, 55, 54, 55, 55, 55, 54, 24, 54, 55, 54, 47, 20, 54, 55, 55, 55, 55, 55, 55, 55, 55, 55, 54, 55, 55, 55, 55, 55, 55, 55, 54, 47, 25, 56, 56, 24, 47, 54, 55, 55, 55, 55, 55, 54, 55, 54, 55, 55, 55, 55, 54, 42, 47, 47, 54, 47, 48, 49, 57, 50, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 51, 52, 52, 52, 52, 51, 52, 52, 52, 52, 52],
-        Array(110).fill(0)
-    ];
-    const groundTileset = fullTiles.map(tiles => tiles.map(tile => groundTiles.includes(tile) ? tile : 0)).flat();
-    const backgroundTileset = fullTiles.map(tiles => tiles.map(tile => groundTiles.includes(tile) ? 0 : tile)).flat();
-
-    const tileEngine = TileEngine({
-        tilewidth: 16,
-        tileheight: 16,
-
-        // map size in tiles
-        width: 110,
-        height: 9,
-
-        // tileset object
-        tilesets: [
-            {
-                firstgid: 1,
-                image: await tilesetAsset.getImage(),
-            },
-        ],
-
-        // layer object
-        layers: [
-            {
-                name: 'background',
-                data: backgroundTileset,
-            },
-            {
-                name: 'ground',
-                data: groundTileset,
-            },
-        ],
-    });
-    tileEngine.sy = 32;
-
     const player = Sprite({
         x: 0,
         y: canvasWindow.nativeHeight - frameSize,
@@ -156,40 +102,90 @@ import { EasingUtils } from "./classes/easing";
         runFlying: true,
         left: false
     });
-
+    const tileEngine = TileEngine({
+        tilewidth: 16,
+        tileheight: 16,
+        width: 110,
+        height: 9,
+        tilesets: [
+            {
+                firstgid: 1,
+                image: await tilesetImg.getImage(),
+            },
+        ],
+        layers: [
+            {
+                name: Layers.Background,
+                data: backgroundTilemap,
+            },
+            {
+                name: Layers.Ground,
+                data: groundTilemap,
+            },
+        ],
+    });
     tileEngine.add(player)
 
     initKeys();
-    let time = 0;
     const loop = GameLoop({
         update: function (dt) {
-            if (keyPressed(['f'])) {
-                spriteAsset.download();
-            }
             player.update();
+
+            // Bending
             if (keyPressed(['arrowdown', 's'])) {
-                player.playAnimation(player.left ? anims.bendl : anims.bendr);
-            } else if (keyPressed(['arrowright', 'd'])) {
-                player.jumping() || player.playAnimation(anims.walkr)
+                player.playAnimation(player.left ? Anims.Bendl : Anims.Bendr);
+            }
+            // Walking right
+            else if (keyPressed(['arrowright', 'd'])) {
+                player.jumping() || player.playAnimation(Anims.Walkr);
+
                 player.x += (speed * 1);
                 player.left = false;
-            } else if (keyPressed(['arrowleft', 'a'])) {
-                player.jumping() || player.playAnimation(anims.walkl)
+            }
+            // Walking left
+            else if (keyPressed(['arrowleft', 'a'])) {
+                player.jumping() || player.playAnimation(Anims.Walkl);
+
                 player.x -= (speed * 1);
                 player.left = true;
-            } else {
-                player.jumping() || player.flying || player.grounded && player.playAnimation(player.left ? anims.idlel : anims.idler);
+            }
+            // Idle
+            else {
+                player.jumping() || player.flying || player.grounded && player.playAnimation(player.left ? Anims.Idlel : Anims.Idler);
             }
 
+            // Jumping
             if (!player.jumping() && !player.flying && player.grounded && keyPressed('space')) {
                 time = 0;
                 player.jumpingUp = true;
                 player.jumpingHeightPos = player.y - player.jumpingHeight;
                 player.jumpingStartPos = player.y;
             }
+            if (player.jumping()) {
+                time += dt;
+                player.playAnimation(player.left ? Anims.Jumpl : Anims.Jumpr);
+                if (player.jumpingUp) {
+                    if (player.y > player.jumpingHeightPos) {
+                        player.y = Easing.easeOut(time, player.jumpingStartPos, player.jumpingHeightPos, .4);
+                    } else {
+                        time = 0;
+                        player.jumpingUp = false;
+                        player.jumpingDown = true;
+                    }
+                }
+                if (player.jumpingDown) {
+                    if (player.y < player.jumpingHeightPos + player.jumpingHeight) {
+                        player.y = Easing.easeIn(time, player.jumpingHeightPos, player.jumpingStartPos, .4);
+                    } else {
+                        player.playAnimation(player.left ? Anims.Bendl : Anims.Bendr);
+                        setTimeout(() => player.jumpingDown = false, 100)
+                    }
+                }
+            }
 
-            const flyAnim = player.left ? anims.flyl : anims.flyr;
-            const flyAnimStart = player.left ? anims.stfl : anims.stfr;
+            // Flying
+            const flyAnim = player.left ? Anims.Flyl : Anims.Flyr;
+            const flyAnimStart = player.left ? Anims.Stfl : Anims.Stfr;
             const { frameRate, frames } = player.animations[flyAnimStart];
             const duration = Math.floor(1000 / (frameRate / frames.length));
             if (keyPressed(['arrowup', 'w']) || player.flying) {
@@ -216,42 +212,19 @@ import { EasingUtils } from "./classes/easing";
                 }
             }
 
-            if (player.jumping()) {
-                time += dt;
-                player.playAnimation(player.left ? anims.jumpl : anims.jumpr);
-                if (player.jumpingUp) {
-                    if (player.y > player.jumpingHeightPos) {
-                        player.y = EasingUtils.easeOut(time, player.jumpingStartPos, player.jumpingHeightPos, .4);
-                    } else {
-                        time = 0;
-                        player.jumpingUp = false;
-                        player.jumpingDown = true;
-                    }
-                }
-                if (player.jumpingDown) {
-                    if (player.y < player.jumpingHeightPos + player.jumpingHeight) {
-                        player.y = EasingUtils.easeIn(time, player.jumpingHeightPos, player.jumpingStartPos, .4);
-                    } else {
-                        player.playAnimation(player.left ? anims.bendl : anims.bendr);
-                        setTimeout(() => player.jumpingDown = false, 100)
-                    }
-                }
-            }
-
+            // Collisions 
             if (player.x > (tileEngine.width * tileEngine.tilewidth)) {
                 player.x = (tileEngine.width * tileEngine.tilewidth) - player.height + 4;
             } else if (player.x < -4) {
                 player.x = -4
-                player.jumping() || player.grounded && player.playAnimation(player.left ? anims.idlel : anims.idler);
+                player.jumping() || player.grounded && player.playAnimation(player.left ? Anims.Idlel : Anims.Idler);
             }
-
-            // Collisions
-            const isInGround = tileEngine.layerCollidesWith('ground', player);
+            const isInGround = tileEngine.layerCollidesWith(Layers.Ground, player);
             if (player.y < 0) {
                 player.y = 0;
             } else if (player.y + player.height > canvas.height || isInGround) {
                 if (isInGround) {
-                    while (tileEngine.layerCollidesWith('ground', player)) {
+                    while (tileEngine.layerCollidesWith(Layers.Ground, player)) {
                         player.y--;
                     }
                     player.y++;
@@ -282,10 +255,10 @@ import { EasingUtils } from "./classes/easing";
                     return result;
                 }, {
                     animations: {
-                        [anims.stfr]: {
-                            isStopped: player.animations[anims.stfr].isStopped,
-                            frames: player.animations[anims.stfr].frames,
-                            frameRate: player.animations[anims.stfr].frameRate,
+                        [Anims.Stfr]: {
+                            isStopped: player.animations[Anims.Stfr].isStopped,
+                            frames: player.animations[Anims.Stfr].frames,
+                            frameRate: player.animations[Anims.Stfr].frameRate,
                             duration
                         }
                     }

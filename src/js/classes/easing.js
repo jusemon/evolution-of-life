@@ -2,7 +2,7 @@
  * A collection of easing functions that can be used in animations.
  * @namespace EasingUtils
  */
-export const EasingUtils = {
+export const Easing = {
 
     /**
      * Ease-in easing function.
