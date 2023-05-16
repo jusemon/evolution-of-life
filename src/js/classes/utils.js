@@ -34,3 +34,10 @@ export const Easing = {
         return -delta * (t /= d) * (t - 2) + b;
     },
 };
+
+export const collitionOffset = ({object, x = 0, y = 0, w = 0, h = 0}) => ({
+    x: object.x + x,
+    y: object.y + y,
+    width: object.width + w,
+    height: object.width + h,
+})

@@ -2,7 +2,7 @@ import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, TileEngine, 
 import tinymusic from "tinymusic";
 import CanvasWindow from "./classes/canvas-windows";
 import { backgroundTilemap, groundTilemap, spriteImg, tilesetImg } from "./assets";
-import { Easing } from "./classes/utils";
+import { Easing, collitionOffset } from "./classes/utils";
 import { Anims, Layers } from "./enums";
 
 console.log("Tiny music loaded", { tinymusic });
@@ -225,18 +225,20 @@ console.log("Tiny music loaded", { tinymusic });
                 player.x = -4
                 player.jumping() || player.grounded && player.playAnimation(player.left ? Anims.Idlel : Anims.Idler);
             }
-            const isInGround = tileEngine.layerCollidesWith(Layers.Ground, player);
+            const offset = { x: -4, width: -8, height: -8 };
+            const isInGround = tileEngine.layerCollidesWith(Layers.Ground, collitionOffset({ object: player, ...offset }));
             if (player.y < 0) {
                 player.y = 0;
             } else if (player.y + player.height > canvas.height || isInGround) {
                 if (isInGround) {
-                    while (tileEngine.layerCollidesWith(Layers.Ground, player)) {
+                    while (tileEngine.layerCollidesWith(Layers.Ground, collitionOffset({ object: player, ...offset }))) {
                         player.y--;
                     }
                     player.y++;
                 } else {
                     player.y = canvas.height - player.height;
                 }
+                player.y = Math.round(player.y);
                 player.flying = false;
                 player.grounded = true;
                 player.runFlying = true;
