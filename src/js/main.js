@@ -1,8 +1,8 @@
-import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, TileEngine } from "kontra";
+import { init, Sprite, SpriteSheet, GameLoop, initKeys, keyPressed, TileEngine, clamp, lerp } from "kontra";
 import tinymusic from "tinymusic";
 import CanvasWindow from "./classes/canvas-windows";
 import { backgroundTilemap, groundTilemap, spriteImg, tilesetImg } from "./assets";
-import { Easing } from "./classes/easing";
+import { Easing } from "./classes/utils";
 import { Anims, Layers } from "./enums";
 
 console.log("Tiny music loaded", { tinymusic });
@@ -12,7 +12,10 @@ console.log("Tiny music loaded", { tinymusic });
 (async () => {
     // Constants 
     const frameSize = 25;
-    const speed = 1;
+    const multiplierSpeed = 2;
+    const speedLimit = 1.5;
+    const deceleration = .15;
+    const floatingLimit = 100000000;
 
     // Variables
     let time = 0;
@@ -138,20 +141,23 @@ console.log("Tiny music loaded", { tinymusic });
             // Walking right
             else if (keyPressed(['arrowright', 'd'])) {
                 player.jumping() || player.playAnimation(Anims.Walkr);
-
-                player.x += (speed * 1);
+                player.dx = clamp(-speedLimit, speedLimit, player.dx + (multiplierSpeed * (1 / 3)));
                 player.left = false;
             }
             // Walking left
             else if (keyPressed(['arrowleft', 'a'])) {
                 player.jumping() || player.playAnimation(Anims.Walkl);
-
-                player.x -= (speed * 1);
+                player.dx = clamp(-speedLimit, speedLimit, player.dx - (multiplierSpeed * (1 / 3)));
                 player.left = true;
             }
             // Idle
             else {
-                player.jumping() || player.flying || player.grounded && player.playAnimation(player.left ? Anims.Idlel : Anims.Idler);
+                player.dx = Math.round(player.dx * deceleration * floatingLimit) / floatingLimit;
+                if (!player.jumping() && player.dx !== 0) {
+                    player.playAnimation(player.left ? Anims.Walkl : Anims.Walkr);
+                } else {
+                    player.flying || player.grounded && player.playAnimation(player.left ? Anims.Idlel : Anims.Idler)
+                }
             }
 
             // Jumping
@@ -237,7 +243,9 @@ console.log("Tiny music loaded", { tinymusic });
             }
 
             // Camera
-            tileEngine.sx = (player.x + (player.width / 2)) - (canvas.width / 2);
+            const applyRound = player.left ? Math.floor : Math.ceil;
+            player.x = applyRound(player.x);
+            tileEngine.sx = applyRound((player.x + (player.width / 2)) - (canvas.width / 2));
 
             // For debugging
             const debug = false
