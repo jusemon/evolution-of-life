@@ -39,5 +39,7 @@ export const collitionOffset = ({object, x = 0, y = 0, w = 0, h = 0}) => ({
     x: object.x + x,
     y: object.y + y,
     width: object.width + w,
-    height: object.width + h,
+    height: object.height + h,
 })
+
+export const roundFloat = (value, limit = 100000000) => Math.round(value * limit) / limit;
