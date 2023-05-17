@@ -186,6 +186,8 @@ console.log("Tiny music loaded", { tinymusic });
                         setTimeout(() => player.jumpingDown = false, 100)
                     }
                 }
+            } else {
+                player.y++;
             }
 
             // Flying
@@ -195,7 +197,7 @@ console.log("Tiny music loaded", { tinymusic });
             const duration = Math.floor(1000 / (frameRate / frames.length));
             if (keyPressed(['arrowup', 'w'])) {
                 player.jumpingDown = player.jumpingUp = false;
-                player.y -= 1;
+                player.y -= 2;
                 player.grounded = false;
                 if (player.runFlying) {
                     player.playAnimation(flyAnimStart);
@@ -211,7 +213,7 @@ console.log("Tiny music loaded", { tinymusic });
                 if (!player.grounded) {
                     player.animations[flyAnim].frameRate = 3;
                     player.playAnimation(flyAnim);
-                    player.y += .5;
+                    player.y -= .5;
                 }
             }
 
@@ -237,7 +239,7 @@ console.log("Tiny music loaded", { tinymusic });
                 while (tileEngine.layerCollidesWith(Layers.Ground, collitionOffset({ object: player, ...offset }))) {
                     player.y--;
                 }
-                // player.y++;
+                player.y++;
                 player.runFlying = true
                 player.grounded = true;
 
