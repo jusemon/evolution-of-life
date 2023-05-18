@@ -1,11 +1,12 @@
 {
   "hosting": {
     "site": "evolution-jsm",
-    "public": "deploy",
+    "public": "dist/min",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/*.zip"
     ]
   }
 }
