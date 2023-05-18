@@ -44,14 +44,8 @@ const bundleSize = function ({ file }) {
         const asset = path.join(options.dir, file);
         const { size } = fs.statSync(asset);
         const percent = parseInt((size / 13312) * 100, 10);
-        let color;
-        if (percent < 50) {
-          color = chalk.green;
-        } else if (percent < 80) {
-          color = chalk.yellow;
-        } else {
-          color = chalk.red;
-        }
+        const color =
+          percent < 50 ? chalk.green : percent < 80 ? chalk.yellow : chalk.red;
 
         console.log(
           `Created bundle ${chalk.cyan(asset)}: ${chalk.bold(
