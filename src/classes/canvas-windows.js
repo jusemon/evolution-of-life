@@ -75,11 +75,11 @@ export default class CanvasWindow {
      */
     this.canvasHeight = this.nativeHeight;
 
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       this.resize();
     });
 
-    window.addEventListener('load', () => {
+    window.addEventListener("load", () => {
       // initialize native height/width
       this.canvas.width = this.canvasWidth;
       this.canvas.height = this.canvasHeight;

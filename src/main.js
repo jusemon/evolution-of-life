@@ -7,19 +7,19 @@ import {
   keyPressed,
   TileEngine,
   clamp,
-} from 'kontra';
-import tinymusic from 'tinymusic';
-import CanvasWindow from './classes/canvas-windows';
+} from "kontra";
+import tinymusic from "tinymusic";
+import CanvasWindow from "./classes/canvas-windows";
 import {
   backgroundTilemap,
   groundTilemap,
   spriteImg,
   tilesetImg,
-} from './assets';
-import { Easing, collitionOffset } from './classes/utils';
-import { Anims, Layers } from './enums';
+} from "./assets";
+import { Easing, collitionOffset } from "./classes/utils";
+import { Anims, Layers } from "./enums";
 
-console.log('Tiny music loaded', { tinymusic });
+console.log("Tiny music loaded", { tinymusic });
 
 (async () => {
   // Constants
@@ -47,11 +47,11 @@ console.log('Tiny music loaded', { tinymusic });
     frameHeight: frameSize,
     animations: {
       [Anims.Walkr]: {
-        frames: ['1..3', 2],
+        frames: ["1..3", 2],
         frameRate: 6,
       },
       [Anims.Walkl]: {
-        frames: ['40..38', 39],
+        frames: ["40..38", 39],
         frameRate: 6,
       },
       [Anims.Idler]: {
@@ -93,11 +93,11 @@ console.log('Tiny music loaded', { tinymusic });
         frameRate: 3,
       },
       [Anims.Stfr]: {
-        frames: ['8..12'],
+        frames: ["8..12"],
         frameRate: 16,
       },
       [Anims.Stfl]: {
-        frames: ['33..29'],
+        frames: ["33..29"],
         frameRate: 16,
       },
     },
@@ -144,11 +144,11 @@ console.log('Tiny music loaded', { tinymusic });
       player.update();
 
       // Bending
-      if (keyPressed(['arrowdown', 's'])) {
+      if (keyPressed(["arrowdown", "s"])) {
         player.playAnimation(player.left ? Anims.Bendl : Anims.Bendr);
       }
       // Walking right
-      else if (keyPressed(['arrowright', 'd'])) {
+      else if (keyPressed(["arrowright", "d"])) {
         player.jumping() || player.playAnimation(Anims.Walkr);
         player.dx = clamp(
           -speedLimit,
@@ -158,7 +158,7 @@ console.log('Tiny music loaded', { tinymusic });
         player.left = false;
       }
       // Walking left
-      else if (keyPressed(['arrowleft', 'a'])) {
+      else if (keyPressed(["arrowleft", "a"])) {
         player.jumping() || player.playAnimation(Anims.Walkl);
         player.dx = clamp(
           -speedLimit,
@@ -180,7 +180,7 @@ console.log('Tiny music loaded', { tinymusic });
       }
 
       // Jumping
-      if (!player.jumping() && player.grounded && keyPressed('space')) {
+      if (!player.jumping() && player.grounded && keyPressed("space")) {
         time = 0;
         player.jumpingUp = true;
         player.jumpingHeightPos = player.y - player.jumpingHeight;
@@ -225,7 +225,7 @@ console.log('Tiny music loaded', { tinymusic });
       const flyAnimStart = player.left ? Anims.Stfl : Anims.Stfr;
       const { frameRate, frames } = player.animations[flyAnimStart];
       const duration = Math.floor(1000 / (frameRate / frames.length));
-      if (keyPressed(['arrowup', 'w'])) {
+      if (keyPressed(["arrowup", "w"])) {
         player.jumpingDown = player.jumpingUp = false;
         player.y -= 3;
         player.grounded = false;

@@ -49,7 +49,7 @@ export default class Img {
   async _build() {
     return new Promise((resolve, reject) => {
       try {
-        const ctx = document.createElement('canvas').getContext('2d');
+        const ctx = document.createElement("canvas").getContext("2d");
         ctx.canvas.width = this.shouldFlip ? this.width * 2 : this.width;
         ctx.canvas.height = this.height;
         ctx.beginPath();
@@ -58,7 +58,7 @@ export default class Img {
           for (let xIndex = 0; xIndex < this.width; xIndex++) {
             if (this.data[yIndex * this.width + xIndex]) {
               ctx.fillStyle =
-                '#' +
+                "#" +
                 this.colors.substr(
                   6 * (this.data[yIndex * this.width + xIndex] - 1),
                   6
@@ -79,7 +79,7 @@ export default class Img {
         img.onerror = (err) => {
           reject(err);
         };
-        img.src = ctx.canvas.toDataURL('image/png');
+        img.src = ctx.canvas.toDataURL("image/png");
       } catch (err) {
         reject(err);
       }
@@ -90,9 +90,9 @@ export default class Img {
     const img = await this.getImage();
 
     // Create a temporary anchor element
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = img.src;
-    link.download = 'image.png';
+    link.download = "image.png";
 
     // Dispatch a click event on the anchor element to initiate the download
     document.body.appendChild(link);
