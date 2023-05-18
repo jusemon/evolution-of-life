@@ -1,5 +1,5 @@
 {
-  "name": "evolution-of-life",
+  "name": "kirby",
   "version": "0.1.0",
   "description": "A micro life simulation game",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jusemon/evolution-of-life.git"
+    "url": "git+https://github.com/jusemon/kirby.git"
   },
   "keywords": [
     "videogame",
@@ -18,9 +18,9 @@
   "author": "Juan Sebastian Montoya",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jusemon/evolution-of-life/issues"
+    "url": "https://github.com/jusemon/kirby/issues"
   },
-  "homepage": "https://github.com/jusemon/evolution-of-life#readme",
+  "homepage": "https://github.com/jusemon/kirby#readme",
   "dependencies": {
     "kontra": "^9.0.0",
     "tinyfont": "^1.3.2",

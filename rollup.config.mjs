@@ -19,7 +19,9 @@ const bundleSize = function ({ file }) {
       order: "post",
       async handler(options, bundle) {
         let uncompressedSize = 0;
-        console.log(chalk.green("Filename".padEnd(15, " ") + " Size (bytes)."));
+        console.log(
+          chalk.green("Filename".padEnd(30, " ") + "\t Size (bytes).")
+        );
         for (const file in bundle) {
           const { modules } = bundle[file];
           for (const moduleName in modules) {
@@ -27,7 +29,7 @@ const bundleSize = function ({ file }) {
             const name = path.basename(moduleName);
             uncompressedSize += module.renderedLength;
             console.log(
-              `${chalk.cyan(name.padEnd(15, " "))} ${chalk.cyan(
+              `${chalk.cyan(name.padEnd(30, " "))}\t ${chalk.cyan(
                 module.renderedLength
               )}`
             );
@@ -85,6 +87,6 @@ export default {
     image(),
     nodeResolve(),
     commonjs(),
-    serve({ contentBase: "dist/min", port: 8080 }),
+    serve({ contentBase: "dist", port: 8080 }),
   ],
 };
