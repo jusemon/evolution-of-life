@@ -14,7 +14,6 @@ A js13k learning purpouse game using Kirby's Dream Land as base
 - Libraries used: Kontra, TinyMusic, Pixel Font
 - Graphics by Juan Sebastián Montoya
 - Soundtrack by Juan Sebastián Montoya
-- Template by Stephen Murray
 - Assets by Nintendo
 
 ## License
